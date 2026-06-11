@@ -1,6 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyz9dVTFiWD3YkDlvR_qYOEdKzeWG9rulRf0JQIBAgdhm2T_IUrc7X9wXUhuEG3uB_E/exec";
 
-// Enquanto você ainda não configurou o Google Apps Script, o site mostra esta lista de teste.
 const PRESENTES_DEMO = [
   { id: "airfryer", nome: "Air Fryer", valor: "R$ 350", categoria: "Cozinha", foto: "img/airfryer.svg" },
   { id: "panelas", nome: "Jogo de Panelas", valor: "R$ 300", categoria: "Cozinha", foto: "img/panelas.svg" },
