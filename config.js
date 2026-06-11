@@ -1,6 +1,3 @@
-// Cole aqui a URL do seu Google Apps Script depois de publicar como Web App.
-// Exemplo: const API_URL = "
-https://script.google.com/macros/s/AKfycbyz9dVTFiWD3YkDlvR_qYOEdKzeWG9rulRf0JQIBAgdhm2T_IUrc7X9wXUhuEG3uB_E/exec";
 const API_URL = "https://script.google.com/macros/s/AKfycbyz9dVTFiWD3YkDlvR_qYOEdKzeWG9rulRf0JQIBAgdhm2T_IUrc7X9wXUhuEG3uB_E/exec";
 
 // Enquanto você ainda não configurou o Google Apps Script, o site mostra esta lista de teste.
