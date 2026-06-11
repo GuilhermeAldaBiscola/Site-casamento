@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Casamento | Guilherme & Fernanda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="tag">Lista de casamento</p>
+      <h1>Guilherme Alda Biscola<br><span>&</span><br>Fernanda Castellan</h1>
+      <p class="main-phrase">Estamos construindo nosso lar do nosso jeito.</p>
+      <p class="sub-phrase">Se quiser fazer parte dessa história, escolha um item da nossa lista e deixe sua marca no começo dessa nova fase.</p>
+      <div class="hero-actions">
+        <a href="#presentes" class="btn-primary">Ver presentes</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2>Nosso cantinho começa aqui</h2>
+      <p>Escolha um presente disponível, informe seu nome e pronto. O item reservado sai automaticamente da lista para os próximos convidados.</p>
+    </section>
+
+    <section class="toolbar" id="presentes">
+      <div>
+        <h2>Presentes disponíveis</h2>
+        <p id="contador">Carregando lista...</p>
+      </div>
+      <select id="filtroCategoria" aria-label="Filtrar por categoria">
+        <option value="todos">Todos</option>
+      </select>
+    </section>
+
+    <section id="listaPresentes" class="gift-grid"></section>
+
+    <section id="mensagemVazia" class="empty hidden">
+      <h2>Todos os presentes foram reservados 💕</h2>
+      <p>Obrigado por fazer parte desse momento tão especial.</p>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <button class="close" onclick="fecharModal()">×</button>
+      <img id="modalFoto" src="" alt="Foto do presente escolhido" />
+      <h2 id="modalTitulo"></h2>
+      <p id="modalValor"></p>
+      <label for="nomeConvidado">Seu nome</label>
+      <input id="nomeConvidado" type="text" placeholder="Ex: João e Maria" />
+      <label for="mensagemConvidado">Mensagem opcional</label>
+      <textarea id="mensagemConvidado" placeholder="Deixe uma mensagem para os noivos"></textarea>
+      <button class="btn-primary full" onclick="confirmarReserva()">Confirmar reserva</button>
+      <p id="modalAviso" class="modal-warning"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Com carinho, Guilherme & Fernanda</p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

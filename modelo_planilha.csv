@@ -1,0 +1,10 @@
+id,nome,valor,categoria,foto,reservado,convidado,mensagem,data
+airfryer,Air Fryer,R$ 350,Cozinha,img/airfryer.svg,,,,
+panelas,Jogo de Panelas,R$ 300,Cozinha,img/panelas.svg,,,,
+liquidificador,Liquidificador,R$ 180,Cozinha,img/liquidificador.svg,,,,
+faqueiro,Faqueiro,R$ 160,Cozinha,img/faqueiro.svg,,,,
+toalhas,Jogo de Toalhas,R$ 140,Banho,img/toalhas.svg,,,,
+cama,Jogo de Cama Casal,R$ 220,Quarto,img/cama.svg,,,,
+pix100,Cota Pix para o lar,R$ 100,Cotas,img/pix.svg,,,,
+pix200,Cota Pix especial,R$ 200,Cotas,img/pix.svg,,,,
+pix200,Cota Pix especial,R$ 200,Cotas,img/pix.svg,,,,
