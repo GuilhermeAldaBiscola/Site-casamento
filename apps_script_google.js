@@ -1,16 +1,52 @@
 const SHEET_PRESENTES = "Presentes";
 const SHEET_PIX = "Pix";
 
-function doGet() {
+function doGet(e) {
+  try {
+    const params = e && e.parameter ? e.parameter : {};
+    const action = String(params.action || "list").trim().toLowerCase();
+
+    let result;
+
+    if (action === "reserva") {
+      result = reservarPresente(params);
+    } else if (action === "pix") {
+      result = registrarPix(params);
+    } else {
+      result = listarPresentes();
+    }
+
+    return responder(result, params.callback);
+  } catch (error) {
+    return responder({ success: false, message: error.message }, e && e.parameter ? e.parameter.callback : "");
+  }
+}
+
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents || "{}");
+    const tipo = String(body.tipo || "reserva").trim().toLowerCase();
+
+    if (tipo === "pix") {
+      return responder(registrarPix(body));
+    }
+
+    return responder(reservarPresente(body));
+  } catch (error) {
+    return responder({ success: false, message: error.message });
+  }
+}
+
+function listarPresentes() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_PRESENTES);
 
   if (!sheet) {
-    return json({ success: false, message: "Aba Presentes não encontrada." });
+    return { success: false, message: "Aba Presentes não encontrada." };
   }
 
   const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return json([]);
+  if (data.length <= 1) return [];
 
   const headers = data.shift().map(h => String(h).trim());
 
@@ -24,42 +60,27 @@ function doGet() {
       return obj;
     });
 
-  return json(presentes);
+  return presentes;
 }
 
-function doPost(e) {
-  try {
-    const body = JSON.parse(e.postData.contents || "{}");
-    const tipo = String(body.tipo || "reserva").trim().toLowerCase();
-
-    if (tipo === "pix") {
-      return registrarPix(body);
-    }
-
-    return reservarPresente(body);
-  } catch (error) {
-    return json({ success: false, message: error.message });
-  }
-}
-
-function reservarPresente(body) {
-  const id = String(body.id || "").trim();
-  const convidado = String(body.convidado || "").trim();
-  const mensagem = String(body.mensagem || "").trim();
+function reservarPresente(data) {
+  const id = String(data.id || "").trim();
+  const convidado = String(data.convidado || "").trim();
+  const mensagem = String(data.mensagem || "").trim();
 
   if (!id || !convidado) {
-    return json({ success: false, message: "Dados incompletos para reserva." });
+    return { success: false, message: "Dados incompletos para reserva." };
   }
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_PRESENTES);
 
   if (!sheet) {
-    return json({ success: false, message: "Aba Presentes não encontrada." });
+    return { success: false, message: "Aba Presentes não encontrada." };
   }
 
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0].map(h => String(h).trim());
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(h => String(h).trim());
 
   const idCol = headers.indexOf("id");
   const reservadoCol = headers.indexOf("reservado");
@@ -68,13 +89,13 @@ function reservarPresente(body) {
   const dataCol = headers.indexOf("data");
 
   if (idCol === -1 || reservadoCol === -1) {
-    return json({ success: false, message: "Colunas id ou reservado não encontradas." });
+    return { success: false, message: "Colunas id ou reservado não encontradas." };
   }
 
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idCol]).trim() === id) {
-      if (String(data[i][reservadoCol]).trim()) {
-        return json({ success: false, message: "Este presente já foi reservado." });
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][idCol]).trim() === id) {
+      if (String(values[i][reservadoCol]).trim()) {
+        return { success: false, message: "Este presente já foi reservado." };
       }
 
       sheet.getRange(i + 1, reservadoCol + 1).setValue("SIM");
@@ -82,20 +103,20 @@ function reservarPresente(body) {
       if (mensagemCol !== -1) sheet.getRange(i + 1, mensagemCol + 1).setValue(mensagem);
       if (dataCol !== -1) sheet.getRange(i + 1, dataCol + 1).setValue(new Date());
 
-      return json({ success: true, message: "Reservado com sucesso." });
+      return { success: true, message: "Reservado com sucesso." };
     }
   }
 
-  return json({ success: false, message: "Presente não encontrado." });
+  return { success: false, message: "Presente não encontrado." };
 }
 
-function registrarPix(body) {
-  const nome = String(body.nome || "").trim();
-  const valor = String(body.valor || "").trim();
-  const mensagem = String(body.mensagem || "").trim();
+function registrarPix(data) {
+  const nome = String(data.nome || "").trim();
+  const valor = String(data.valor || "").trim();
+  const mensagem = String(data.mensagem || "").trim();
 
   if (!nome || !valor) {
-    return json({ success: false, message: "Nome e valor são obrigatórios para aviso de Pix." });
+    return { success: false, message: "Nome e valor são obrigatórios para aviso de Pix." };
   }
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -108,11 +129,20 @@ function registrarPix(body) {
 
   sheet.appendRow([new Date(), nome, valor, mensagem]);
 
-  return json({ success: true, message: "Aviso de Pix registrado." });
+  return { success: true, message: "Aviso de Pix registrado." };
 }
 
-function json(obj) {
+function responder(obj, callback) {
+  const json = JSON.stringify(obj);
+  const cb = String(callback || "").trim();
+
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + "(" + json + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
   return ContentService
-    .createTextOutput(JSON.stringify(obj))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }

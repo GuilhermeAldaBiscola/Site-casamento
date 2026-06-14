@@ -9,16 +9,55 @@ async function iniciar() {
   renderizarPresentes();
 }
 
-async function carregarPresentes() {
-  try {
+function chamarAppsScript(params = {}) {
+  return new Promise((resolve, reject) => {
     if (!API_URL || API_URL.includes("SUA_URL")) {
-      throw new Error("API_URL não configurada");
+      reject(new Error("API_URL não configurada"));
+      return;
     }
 
-    const resposta = await fetch(API_URL);
-    if (!resposta.ok) throw new Error("Erro HTTP " + resposta.status);
+    const callbackName = "jsonpCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const url = new URL(API_URL);
 
-    const dados = await resposta.json();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        url.searchParams.set(key, params[key]);
+      }
+    });
+
+    url.searchParams.set("callback", callbackName);
+
+    const script = document.createElement("script");
+    let timeout;
+
+    window[callbackName] = function(dados) {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+      resolve(dados);
+    };
+
+    script.onerror = function() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("Erro ao carregar Apps Script"));
+    };
+
+    timeout = setTimeout(() => {
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("Tempo esgotado ao carregar Apps Script"));
+    }, 15000);
+
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function carregarPresentes() {
+  try {
+    const dados = await chamarAppsScript({ action: "list" });
     const lista = Array.isArray(dados) ? dados : (Array.isArray(dados.presentes) ? dados.presentes : []);
 
     if (!lista.length) throw new Error("Lista vazia ou retorno inválido");
@@ -174,17 +213,12 @@ async function confirmarReserva() {
   try {
     aviso.textContent = "Reservando...";
 
-    const resposta = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        tipo: "reserva",
-        id: presenteSelecionado.id,
-        convidado: nome,
-        mensagem: mensagem
-      })
+    const retorno = await chamarAppsScript({
+      action: "reserva",
+      id: presenteSelecionado.id,
+      convidado: nome,
+      mensagem: mensagem
     });
-
-    const retorno = await resposta.json();
 
     if (!retorno.success && retorno.status !== "ok") {
       throw new Error(retorno.message || "Não foi possível reservar.");
@@ -233,17 +267,12 @@ async function avisarPix() {
   try {
     aviso.textContent = "Enviando aviso...";
 
-    const resposta = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        tipo: "pix",
-        nome: nome,
-        valor: valor,
-        mensagem: mensagem
-      })
+    const retorno = await chamarAppsScript({
+      action: "pix",
+      nome: nome,
+      valor: valor,
+      mensagem: mensagem
     });
-
-    const retorno = await resposta.json();
 
     if (!retorno.success && retorno.status !== "ok") {
       throw new Error(retorno.message || "Não foi possível registrar o aviso.");

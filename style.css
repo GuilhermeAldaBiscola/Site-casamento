@@ -93,9 +93,7 @@ h1 span {
   border: 1px solid var(--line);
 }
 
-.btn-secondary:hover {
-  background: #faf7f8;
-}
+.btn-secondary:hover { background: #faf7f8; }
 
 .full { width: 100%; margin-top: 14px; }
 
@@ -179,9 +177,7 @@ textarea {
   background: #fffaf0;
 }
 
-.gift-info {
-  padding: 18px;
-}
+.gift-info { padding: 18px; }
 
 .category {
   margin: 0 0 8px;
