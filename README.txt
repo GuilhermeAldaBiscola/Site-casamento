@@ -1,45 +1,67 @@
-SITE DE LISTA DE CASAMENTO - GUILHERME & FERNANDA
+SITE DE CASAMENTO - GUILHERME & FERNANDA
+VERSÃO REVISADA COM LINK DE PRODUTO SUGERIDO
 
-O QUE VEM NO PACOTE
-1. index.html - página principal do site.
-2. style.css - tema fúcsia.
-3. script.js - funcionamento da lista e reserva.
-4. config.js - onde você cola a URL do Google Apps Script.
-5. apps_script_google.js - código para colar no Google Apps Script.
-6. modelo_planilha.csv - modelo para importar no Google Planilhas.
-7. pasta img - imagens modelo dos presentes.
+O QUE TEM NESTA VERSÃO
+- Site limpo, sem mensagens duplicadas.
+- Destaque principal: Guilherme & Fernanda.
+- Presentes aparecem em cartões simples.
+- Ao clicar em um presente, aparece:
+  1. foto;
+  2. nome;
+  3. valor;
+  4. descrição detalhada;
+  5. botão Ver produto sugerido, quando houver link;
+  6. campos para reservar o presente.
+- Pix tem apenas uma opção livre.
+- Pix tem QR Code, chave, botão copiar Pix, valor escolhido e mensagem para os noivos.
+- Itens Pix não somem.
+- Presentes físicos somem após reserva.
 
-COMO COLOCAR FOTOS DOS PRESENTES
-1. Coloque suas imagens dentro da pasta img.
-2. Use nomes simples, exemplo: airfryer.jpg, panelas.jpg.
-3. Na planilha, na coluna foto, coloque: img/airfryer.jpg
-4. Suba essas imagens junto com o site no GitHub Pages.
+PLANILHA
+Use exatamente estes cabeçalhos na aba Presentes:
 
-COMO FAZER O ITEM SUMIR QUANDO ALGUÉM RESERVAR
-1. Crie uma planilha no Google Planilhas.
-2. Importe o arquivo modelo_planilha.csv.
-3. Renomeie a aba para: Presentes
-4. Vá em Extensões > Apps Script.
-5. Apague tudo e cole o conteúdo do arquivo apps_script_google.js.
-6. Salve.
-7. Clique em Implantar > Nova implantação.
-8. Tipo: App da Web.
-9. Executar como: você.
-10. Quem tem acesso: qualquer pessoa.
-11. Copie a URL gerada.
-12. Abra o arquivo config.js e cole a URL aqui:
-const API_URL = "SUA_URL_AQUI";
+id | nome | valor | categoria | foto | descricao | link_loja | reservado | convidado | mensagem | data
 
-COMO PUBLICAR DE GRAÇA
-Opção recomendada: GitHub Pages.
-1. Crie uma conta no GitHub.
-2. Crie um repositório chamado lista-casamento.
-3. Envie todos os arquivos deste pacote.
-4. Vá em Settings > Pages.
-5. Em Source, escolha Deploy from branch.
-6. Escolha main / root.
-7. O GitHub vai gerar o link público do site.
+DESCRIÇÃO DETALHADA
+Coloque o texto completo na coluna:
+
+descricao
+
+LINK DO PRODUTO SUGERIDO
+Cole o link na coluna:
+
+link_loja
+
+Exemplo:
+https://www.magazineluiza.com.br/...
+
+Se a coluna link_loja estiver vazia, o botão Ver produto sugerido não aparece.
 
 IMPORTANTE
-Sem configurar o Google Apps Script, o site funciona apenas em modo demonstração.
-Com o Apps Script configurado, a reserva passa a valer para todos os convidados.
+- Não use acento no cabeçalho descricao.
+- Não use espaço no cabeçalho link_loja.
+- Não precisa cadastrar Pix na planilha. O Pix livre já está configurado no config.js.
+
+ARQUIVOS PARA SUBIR NO GITHUB
+Substitua todos estes arquivos:
+- index.html
+- style.css
+- script.js
+- config.js
+- apps_script_google.js
+- README.txt
+- modelo_planilha.csv
+- pasta img
+
+APPS SCRIPT
+Para o aviso do Pix salvar:
+1. Abra o Google Apps Script.
+2. Apague o código antigo.
+3. Cole o conteúdo de apps_script_google.js.
+4. Salve.
+5. Clique em Implantar > Gerenciar implantações.
+6. Clique no lápis.
+7. Escolha Nova versão.
+8. Clique em Implantar.
+
+Depois atualize o site com Ctrl + F5.

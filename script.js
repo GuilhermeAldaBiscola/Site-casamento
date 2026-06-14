@@ -1,111 +1,272 @@
 let presentes = [];
 let presenteSelecionado = null;
-let filtroAtual = "todos";
 
-const lista = document.getElementById("listaPresentes");
-const contador = document.getElementById("contador");
-const filtro = document.getElementById("filtroCategoria");
-const modal = document.getElementById("modal");
+document.addEventListener("DOMContentLoaded", iniciar);
+
+async function iniciar() {
+  await carregarPresentes();
+  configurarFiltro();
+  renderizarPresentes();
+}
 
 async function carregarPresentes() {
   try {
-    if (!API_URL) {
-      presentes = PRESENTES_DEMO;
-    } else {
-      const resposta = await fetch(API_URL);
-      presentes = await resposta.json();
+    if (!API_URL || API_URL.includes("SUA_URL")) {
+      throw new Error("API_URL não configurada");
     }
-    montarCategorias();
-    renderizar();
+
+    const resposta = await fetch(API_URL);
+    if (!resposta.ok) throw new Error("Erro HTTP " + resposta.status);
+
+    const dados = await resposta.json();
+    const lista = Array.isArray(dados) ? dados : (Array.isArray(dados.presentes) ? dados.presentes : []);
+
+    if (!lista.length) throw new Error("Lista vazia ou retorno inválido");
+
+    presentes = lista
+      .map(normalizarPresente)
+      .filter(item => !ehPix(item));
   } catch (erro) {
-    contador.textContent = "Não foi possível carregar a lista. Verifique a configuração.";
-    console.error(erro);
+    console.warn("Usando lista demo:", erro);
+    presentes = (PRESENTES_DEMO || []).map(normalizarPresente).filter(item => !ehPix(item));
   }
+
+  presentes.unshift(normalizarPresente(PIX_ITEM));
 }
 
-function montarCategorias() {
-  const categorias = [...new Set(presentes.map(p => p.categoria).filter(Boolean))];
-  filtro.innerHTML = '<option value="todos">Todos</option>' + categorias.map(c => `<option value="${c}">${c}</option>`).join("");
+function normalizarPresente(item) {
+  return {
+    id: String(item.id || "").trim(),
+    nome: String(item.nome || "").trim(),
+    valor: String(item.valor || "").trim(),
+    categoria: String(item.categoria || "Outros").trim(),
+    foto: String(item.foto || "img/presente.svg").trim(),
+    descricao: String(item.descricao || item.descrição || "").trim(),
+    link_loja: String(item.link_loja || item.link || item.loja || item.produto || "").trim(),
+    reservado: String(item.reservado || "").trim(),
+    convidado: String(item.convidado || "").trim(),
+    mensagem: String(item.mensagem || "").trim(),
+    data: String(item.data || "").trim()
+  };
 }
 
-filtro.addEventListener("change", () => {
-  filtroAtual = filtro.value;
-  renderizar();
-});
+function ehPix(item) {
+  return String(item.categoria || "").toLowerCase() === "pix" || String(item.id || "").toLowerCase().startsWith("pix");
+}
 
-function renderizar() {
-  const disponiveis = presentes.filter(p => !p.reservado && (filtroAtual === "todos" || p.categoria === filtroAtual));
-  contador.textContent = `${disponiveis.length} presente(s) disponível(is)`;
-  document.getElementById("mensagemVazia").classList.toggle("hidden", disponiveis.length !== 0);
-  lista.innerHTML = disponiveis.map(p => `
-    <article class="gift-card">
-      <img src="${p.foto || 'img/presente.svg'}" alt="${p.nome}" onerror="this.src='img/presente.svg'">
+function configurarFiltro() {
+  const filtro = document.getElementById("filtroCategoria");
+  const categorias = [...new Set(presentes.map(p => p.categoria).filter(Boolean))].sort();
+
+  filtro.innerHTML = '<option value="todos">Todos</option>';
+  categorias.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    filtro.appendChild(option);
+  });
+
+  filtro.onchange = renderizarPresentes;
+}
+
+function renderizarPresentes() {
+  const lista = document.getElementById("listaPresentes");
+  const vazia = document.getElementById("mensagemVazia");
+  const filtro = document.getElementById("filtroCategoria").value;
+
+  lista.innerHTML = "";
+
+  const disponiveis = presentes.filter(item => {
+    const passaFiltro = filtro === "todos" || item.categoria === filtro;
+    const disponivel = ehPix(item) || !item.reservado;
+    return passaFiltro && disponivel;
+  });
+
+  if (disponiveis.length === 0) {
+    vazia.classList.remove("hidden");
+    return;
+  }
+  vazia.classList.add("hidden");
+
+  disponiveis.forEach(item => {
+    const card = document.createElement("article");
+    card.className = ehPix(item) ? "gift-card pix-card" : "gift-card";
+
+    card.innerHTML = `
+      <img src="${escaparAtributo(item.foto)}" alt="${escaparAtributo(item.nome)}" onerror="this.src='img/presente.svg'" />
       <div class="gift-info">
-        <span class="category">${p.categoria || 'Presente'}</span>
-        <h3>${p.nome}</h3>
-        <p class="price">${p.valor || ''}</p>
-        <button class="btn-primary" onclick="abrirModal('${p.id}')">Reservar presente</button>
+        <p class="category">${escaparHTML(item.categoria)}</p>
+        <h3>${escaparHTML(item.nome)}</h3>
+        <p class="price">${escaparHTML(item.valor)}</p>
+        <button class="btn-primary full" onclick="abrirModal('${escaparAtributo(item.id)}')">
+          ${ehPix(item) ? "Fazer Pix" : "Ver detalhes"}
+        </button>
       </div>
-    </article>
-  `).join("");
+    `;
+
+    lista.appendChild(card);
+  });
 }
 
 function abrirModal(id) {
   presenteSelecionado = presentes.find(p => p.id === id);
   if (!presenteSelecionado) return;
-  document.getElementById("modalFoto").src = presenteSelecionado.foto || "img/presente.svg";
+
+  const isPix = ehPix(presenteSelecionado);
+  const modalFoto = document.getElementById("modalFoto");
+  modalFoto.src = presenteSelecionado.foto || "img/presente.svg";
+  modalFoto.classList.toggle("pix-modal-icon", isPix);
+
+  document.getElementById("modalCategoria").textContent = presenteSelecionado.categoria;
   document.getElementById("modalTitulo").textContent = presenteSelecionado.nome;
-  document.getElementById("modalValor").textContent = presenteSelecionado.valor || "";
-  document.getElementById("nomeConvidado").value = "";
-  document.getElementById("mensagemConvidado").value = "";
+  document.getElementById("modalValor").textContent = presenteSelecionado.valor;
+  document.getElementById("modalDescricao").textContent = presenteSelecionado.descricao || "Sem descrição detalhada cadastrada.";
+
+  const link = document.getElementById("modalLinkLoja");
+  if (!isPix && presenteSelecionado.link_loja) {
+    link.href = presenteSelecionado.link_loja;
+    link.classList.remove("hidden");
+  } else {
+    link.href = "#";
+    link.classList.add("hidden");
+  }
+
   document.getElementById("modalAviso").textContent = "";
-  modal.classList.remove("hidden");
+  limparCampos();
+
+  if (isPix) {
+    document.getElementById("areaReserva").classList.add("hidden");
+    document.getElementById("areaPix").classList.remove("hidden");
+    document.getElementById("pixChaveTexto").textContent = PIX_KEY;
+    document.getElementById("pixQrCode").src = PIX_QR_CODE;
+  } else {
+    document.getElementById("areaPix").classList.add("hidden");
+    document.getElementById("areaReserva").classList.remove("hidden");
+  }
+
+  document.getElementById("modal").classList.remove("hidden");
+}
+
+function limparCampos() {
+  ["nomeConvidado", "mensagemConvidado", "pixNome", "pixValor", "pixMensagem"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
 }
 
 function fecharModal() {
-  modal.classList.add("hidden");
+  document.getElementById("modal").classList.add("hidden");
+  presenteSelecionado = null;
 }
 
 async function confirmarReserva() {
+  if (!presenteSelecionado || ehPix(presenteSelecionado)) return;
+
   const nome = document.getElementById("nomeConvidado").value.trim();
   const mensagem = document.getElementById("mensagemConvidado").value.trim();
   const aviso = document.getElementById("modalAviso");
 
   if (!nome) {
-    aviso.textContent = "Informe seu nome para reservar.";
+    aviso.textContent = "Informe seu nome para confirmar a reserva.";
     return;
   }
-
-  if (!API_URL) {
-    presentes = presentes.map(p => p.id === presenteSelecionado.id ? { ...p, reservado: true } : p);
-    fecharModal();
-    renderizar();
-    alert("Reserva simulada. Configure o Google Apps Script para salvar de verdade.");
-    return;
-  }
-
-  aviso.textContent = "Reservando...";
 
   try {
+    aviso.textContent = "Reservando...";
+
     const resposta = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({ id: presenteSelecionado.id, nome, mensagem }),
+      body: JSON.stringify({
+        tipo: "reserva",
+        id: presenteSelecionado.id,
+        convidado: nome,
+        mensagem: mensagem
+      })
     });
-    const dados = await resposta.json();
 
-    if (!dados.ok) {
-      aviso.textContent = dados.erro || "Esse item já foi reservado.";
-      await carregarPresentes();
-      return;
+    const retorno = await resposta.json();
+
+    if (!retorno.success && retorno.status !== "ok") {
+      throw new Error(retorno.message || "Não foi possível reservar.");
     }
 
-    fecharModal();
-    await carregarPresentes();
-    alert("Presente reservado com sucesso. Muito obrigado!");
+    presenteSelecionado.reservado = "SIM";
+    presenteSelecionado.convidado = nome;
+    aviso.textContent = "Presente reservado com sucesso. Obrigado!";
+    setTimeout(() => {
+      fecharModal();
+      renderizarPresentes();
+    }, 900);
+
   } catch (erro) {
-    aviso.textContent = "Erro ao reservar. Tente novamente.";
     console.error(erro);
+    aviso.textContent = "Não foi possível reservar agora. Tente novamente.";
   }
 }
 
-carregarPresentes();
+async function copiarPix() {
+  const aviso = document.getElementById("modalAviso");
+  try {
+    await navigator.clipboard.writeText(PIX_KEY);
+    aviso.textContent = "Chave Pix copiada com sucesso!";
+  } catch (erro) {
+    aviso.textContent = "Chave Pix: " + PIX_KEY;
+  }
+}
+
+async function avisarPix() {
+  const nome = document.getElementById("pixNome").value.trim();
+  const valor = document.getElementById("pixValor").value.trim();
+  const mensagem = document.getElementById("pixMensagem").value.trim();
+  const aviso = document.getElementById("modalAviso");
+
+  if (!nome) {
+    aviso.textContent = "Informe seu nome para enviar o aviso.";
+    return;
+  }
+
+  if (!valor) {
+    aviso.textContent = "Informe o valor do Pix para os noivos identificarem.";
+    return;
+  }
+
+  try {
+    aviso.textContent = "Enviando aviso...";
+
+    const resposta = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        tipo: "pix",
+        nome: nome,
+        valor: valor,
+        mensagem: mensagem
+      })
+    });
+
+    const retorno = await resposta.json();
+
+    if (!retorno.success && retorno.status !== "ok") {
+      throw new Error(retorno.message || "Não foi possível registrar o aviso.");
+    }
+
+    aviso.textContent = "Aviso enviado com sucesso. Muito obrigado!";
+    setTimeout(() => fecharModal(), 1200);
+
+  } catch (erro) {
+    console.error(erro);
+    aviso.textContent = "Não foi possível enviar o aviso agora. Confira se o Apps Script foi atualizado.";
+  }
+}
+
+function escaparHTML(texto) {
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escaparAtributo(texto) {
+  return escaparHTML(texto);
+}
