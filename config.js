@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyz9dVTFiWD3YkDlvR_qYOEdKzeWG9rulRf0JQIBAgdhm2T_IUrc7X9wXUhuEG3uB_E/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx6cKSF56544RtbKk2DkRvYa4eXAiHXlJzVXwiEAfpRz7Bom3gcq07GXkBqIKOy2tgk7w/exec";
 
 const PIX_KEY = "10193675986";
 const PIX_QR_CODE = "img/qrcode-pix.png";
