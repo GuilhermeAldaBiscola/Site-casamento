@@ -1,6 +1,6 @@
 // Cole aqui a URL do Apps Script publicado como App da Web.
 // Use a URL que termina em /exec.
-const API_URL = "https://script.google.com/macros/s/AKfycbyz9dVTFiWD3YkDlvR_qYOEdKzeWG9rulRf0JQIBAgdhm2T_IUrc7X9wXUhuEG3uB_E/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyKcQbKsNdNLg7c7j3iyMZo9c3q905huvS1anin_pwwvOel3IDW0Sz5NB4qy76lkKcKEg/exec";
 
 const PIX_KEY = "10193675986";
 const PIX_QR_CODE = "img/qrcode-pix.png";
